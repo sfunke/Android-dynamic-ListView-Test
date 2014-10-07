@@ -3,6 +3,7 @@ package com.example.listdeletetest.webservice;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.example.listdeletetest.R;
 import com.example.listdeletetest.model.Tweet;
@@ -93,7 +94,9 @@ public class FauxWebService implements WebService {
 			public void run() {
 				synchronized (this) {
 					List<Tweet> result = new ArrayList<Tweet>();
-					for (int i = 0; i < limit; i++) {
+					int lim = (int) Math.floor(Math.random() * (limit))+1;
+					Log.d("XXX", "lim " + lim);
+					for (int i = 0; i < lim; i++) {
 						try {
 							Tweet tweet = mNewTweets.remove(mNewTweets.size() - 1);
 							result.add(tweet);

@@ -68,7 +68,9 @@ public class MainFragment extends Fragment {
 		mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
-				mUserHasInitiallyScrolled = (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL); // <= prevents from initially onScroll being called when set as ScrollListener
+				if(scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
+					mUserHasInitiallyScrolled = true; // <= prevents from initially onScroll being called when set as ScrollListener
+				}
 			}
 
 			@Override
