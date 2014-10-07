@@ -13,18 +13,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class MyAdapter extends ArrayAdapter<Tweet> {
+public class ListAdapter extends ArrayAdapter<Tweet> {
 	private final static int VIEW_TYPE_INVISIBLE = 0;
 	private static int VIEW_TYPE_DEFAULT = 1;
 
 	private LinkedList<Tweet> mList;
 	private Set<Integer> mInvisibleItems = new HashSet<Integer>();
 
-	public static MyAdapter istantiate(Context context) {
-		return new MyAdapter(context, new LinkedList<Tweet>());
+	public static ListAdapter istantiate(Context context) {
+		return new ListAdapter(context, new LinkedList<Tweet>());
 	}
 
-	private MyAdapter(Context context, LinkedList<Tweet> list) {
+	private ListAdapter(Context context, LinkedList<Tweet> list) {
 		super(context, 0, list);
 		mList = list;
 	}
@@ -94,7 +94,7 @@ public class MyAdapter extends ArrayAdapter<Tweet> {
 		notifyDataSetChanged();
 	}
 
-	public void makeAllVisible(boolean notifyChanged) {
+	public void makeAllVisibleAndNotify(boolean notifyChanged) {
 		mInvisibleItems.clear();
 		if(notifyChanged) {
 			notifyDataSetChanged();

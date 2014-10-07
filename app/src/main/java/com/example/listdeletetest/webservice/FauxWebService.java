@@ -1,9 +1,10 @@
-package com.example.listdeletetest;
+package com.example.listdeletetest.webservice;
 
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.example.listdeletetest.R;
 import com.example.listdeletetest.model.Tweet;
 import com.example.listdeletetest.utils.RawResource;
 

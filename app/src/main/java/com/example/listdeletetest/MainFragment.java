@@ -16,6 +16,8 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 
 import com.example.listdeletetest.model.Tweet;
+import com.example.listdeletetest.webservice.FauxWebService;
+import com.example.listdeletetest.webservice.WebService;
 import com.jensdriller.libs.undobar.UndoBar;
 
 import java.util.ArrayList;
@@ -25,7 +27,7 @@ public class MainFragment extends Fragment {
 	private ListController mListController;
 	private AbsListView mListView;
 	private SwipeRefreshLayout mSwipeLayout;
-	private boolean mUserScrolled;
+	private boolean mUserHasInitiallyScrolled;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -47,8 +49,10 @@ public class MainFragment extends Fragment {
 				android.R.color.holo_green_light,
 				android.R.color.holo_orange_light,
 				android.R.color.holo_red_light);
+
+
 		WebService webService = new FauxWebService(getActivity());
-		MyAdapter adapter = MyAdapter.istantiate(getActivity());
+		ListAdapter adapter = ListAdapter.istantiate(getActivity());
 
 		mListController = new ListController(webService, adapter);
 		mListController.setRefreshCompleteDelegate(new ListController.RefreshCompleteDelegate() {
@@ -64,13 +68,14 @@ public class MainFragment extends Fragment {
 		mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
-//				mUserScrolled = (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
+				mUserHasInitiallyScrolled = (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL); // <= prevents from initially onScroll being called when set as ScrollListener
 			}
 
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+				if(!mUserHasInitiallyScrolled) return;
+
 				int visibleCount = firstVisibleItem + visibleItemCount;
-//				if(mUserScrolled && visibleCount > (totalItemCount - 2)) {
 				if (visibleCount > (totalItemCount - 2)) {
 					mSwipeLayout.setRefreshing(true);
 					mListController.fetchNext();
@@ -120,7 +125,6 @@ public class MainFragment extends Fragment {
 				case R.id.action_delete:
 
 					SparseBooleanArray checked = getListView().getCheckedItemPositions();
-					long[] checkedItemIds = getListView().getCheckedItemIds();
 
 					ArrayList<Tweet> selectedItems = new ArrayList<Tweet>();
 					for (int i = 0; i < checked.size(); i++) {

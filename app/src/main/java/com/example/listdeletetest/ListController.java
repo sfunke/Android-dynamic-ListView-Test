@@ -1,6 +1,7 @@
 package com.example.listdeletetest;
 
 import com.example.listdeletetest.model.Tweet;
+import com.example.listdeletetest.webservice.WebService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,20 +19,17 @@ public class ListController implements WebService.Delegate {
 	public static int NEWEST_REQUEST_LIMIT = 2;
 
 	private WebService mWebService;
-	private MyAdapter mAdapter;
-	private List<Tweet> mTweets;
-	private RefreshCompleteDelegate mRefreshCompleteDelegate = new RefreshCompleteDelegate() {
-		@Override
-		public void handleRefreshComplete() {}
-	};
+	private ListAdapter mAdapter;
+	private List<Tweet> mMasterList;
+	private RefreshCompleteDelegate mRefreshCompleteDelegate;
 
 	public void setRefreshCompleteDelegate(RefreshCompleteDelegate refreshCompleteDelegate) {
 		mRefreshCompleteDelegate = refreshCompleteDelegate;
 	}
 
-	public ListController(WebService webService, MyAdapter adapter) {
+	public ListController(WebService webService, ListAdapter adapter) {
 		mAdapter = adapter;
-		mTweets = new ArrayList<Tweet>();
+		mMasterList = new ArrayList<Tweet>();
 		mPrepareDeleteTweets = new ArrayList<Tweet>();
 
 		mWebService = webService;
@@ -39,15 +37,17 @@ public class ListController implements WebService.Delegate {
 	}
 
 
-
 	public void fetchInitial() {
 		if(mIsBusy)
 			return;
 
-		mAdapter.addAll(mTweets);
+		if(mMasterList.size() > 0) {
+			mAdapter.replaceAll(mMasterList);
+		}
 
-		if(mTweets.size() < INITIAL_COUNT) {
-			fetchNext();
+		if(mMasterList.size() < INITIAL_COUNT) {
+			mIsBusy = true;
+			mWebService.fetchNext(INITIAL_COUNT);
 		}
 	}
 
@@ -67,23 +67,24 @@ public class ListController implements WebService.Delegate {
 		mWebService.fetchNewest(NEWEST_REQUEST_LIMIT);
 	}
 
+
 	@Override
 	public void handleResultNext(List<Tweet> tweets) {
 		for(Tweet tweet : tweets) {
-			mTweets.add(tweet);
+			mMasterList.add(tweet);
 		}
-		mAdapter.replaceAll(mTweets);
-//		mAdapter.addAll(mTweets);
+		mAdapter.replaceAll(mMasterList);
 		mRefreshCompleteDelegate.handleRefreshComplete();
 		mIsBusy = false;
 	}
 
+
 	@Override
 	public void handleResultNewest(List<Tweet> tweets) {
 		for(Tweet tweet : tweets) {
-			mTweets.add(0, tweet);
+			mMasterList.add(0, tweet);
 		}
-		mAdapter.replaceAll(mTweets);
+		mAdapter.replaceAll(mMasterList);
 		mRefreshCompleteDelegate.handleRefreshComplete();
 		mIsBusy = false;
 	}
@@ -97,12 +98,12 @@ public class ListController implements WebService.Delegate {
 		if(mPrepareDeleteTweets.size() > 0) {
 			// remove locally
 			for(Tweet tweet : mPrepareDeleteTweets) {
-				mTweets.remove(tweet);
+				mMasterList.remove(tweet);
 			}
 
 			// update adapter
-			mAdapter.makeAllVisible(false);
-			mAdapter.replaceAll(mTweets);
+			mAdapter.makeAllVisibleAndNotify(false);
+			mAdapter.replaceAll(mMasterList);
 
 			// call to webservice
 			mWebService.delete(mPrepareDeleteTweets);
@@ -111,7 +112,7 @@ public class ListController implements WebService.Delegate {
 
 	public void undoPrepareDelete() {
 		mPrepareDeleteTweets.clear();
-		mAdapter.makeAllVisible(true);
+		mAdapter.makeAllVisibleAndNotify(true);
 	}
 
 }

@@ -1,4 +1,4 @@
-package com.example.listdeletetest;
+package com.example.listdeletetest.webservice;
 
 import com.example.listdeletetest.model.Tweet;
 
