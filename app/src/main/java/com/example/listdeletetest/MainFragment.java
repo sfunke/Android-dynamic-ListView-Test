@@ -52,7 +52,7 @@ public class MainFragment extends Fragment {
 
 
 		WebService webService = new FauxWebService(getActivity());
-		ListAdapter adapter = ListAdapter.istantiate(getActivity());
+		ListAdapter adapter = ListAdapter.instantiate(getActivity());
 
 		mListController = new ListController(webService, adapter);
 		mListController.setRefreshCompleteDelegate(new ListController.RefreshCompleteDelegate() {

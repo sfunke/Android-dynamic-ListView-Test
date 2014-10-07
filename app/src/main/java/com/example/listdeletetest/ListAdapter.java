@@ -20,7 +20,7 @@ public class ListAdapter extends ArrayAdapter<Tweet> {
 	private LinkedList<Tweet> mList;
 	private Set<Integer> mInvisibleItems = new HashSet<Integer>();
 
-	public static ListAdapter istantiate(Context context) {
+	public static ListAdapter instantiate(Context context) {
 		return new ListAdapter(context, new LinkedList<Tweet>());
 	}
 
