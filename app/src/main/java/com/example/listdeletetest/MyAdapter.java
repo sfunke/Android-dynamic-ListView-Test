@@ -35,6 +35,7 @@ public class MyAdapter extends ArrayAdapter<Tweet> {
 			case VIEW_TYPE_INVISIBLE:
 				if (convertView == null) {
 					convertView = new View(getContext());
+					convertView.setVisibility(View.GONE);
 				}
 				return convertView;
 
@@ -45,6 +46,7 @@ public class MyAdapter extends ArrayAdapter<Tweet> {
 				} else {
 					itemView = (TweetItemView) convertView;
 				}
+				itemView.setVisibility(View.VISIBLE);
 				Tweet tweet = getItem(position);
 				itemView.update(tweet);
 				return itemView;
@@ -92,8 +94,10 @@ public class MyAdapter extends ArrayAdapter<Tweet> {
 		notifyDataSetChanged();
 	}
 
-	public void makeAllVisible() {
+	public void makeAllVisible(boolean notifyChanged) {
 		mInvisibleItems.clear();
-		notifyDataSetChanged();
+		if(notifyChanged) {
+			notifyDataSetChanged();
+		}
 	}
 }

@@ -34,11 +34,11 @@ public class Tweet {
 	private int mHashCode;
 
 	public Tweet(JSONObject jsonTweet) throws JSONException {
-        mId = String.valueOf(jsonTweet.getLong(JSON_ID));
+        mId = jsonTweet.getString(JSON_ID);
         mMessage = jsonTweet.getString(JSON_MESSAGE);
         mAuthorName = jsonTweet.getString(JSON_AUTHOR_NAME);
         mProfileImageUrl = jsonTweet.getString(JSON_PROFILE_IMAGE_URL);
-        mPostImageUrl = jsonTweet.optString(JSON_POST_IMAGE_URL, null);
+        mPostImageUrl = jsonTweet.isNull(JSON_POST_IMAGE_URL) ? null : jsonTweet.optString(JSON_POST_IMAGE_URL, null);
     }
 
     public String getId() {

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ListController implements WebService.Delegate {
+	private final ArrayList<Tweet> mPrepareDeleteTweets;
 	private boolean mIsBusy;
 
 	public static interface RefreshCompleteDelegate {
@@ -31,6 +32,7 @@ public class ListController implements WebService.Delegate {
 	public ListController(WebService webService, MyAdapter adapter) {
 		mAdapter = adapter;
 		mTweets = new ArrayList<Tweet>();
+		mPrepareDeleteTweets = new ArrayList<Tweet>();
 
 		mWebService = webService;
 		mWebService.setDelegate(this);
@@ -87,11 +89,29 @@ public class ListController implements WebService.Delegate {
 	}
 
 	public void prepareDelete(ArrayList<Tweet> selectedItems) {
+		mPrepareDeleteTweets.addAll(selectedItems);
 		mAdapter.makeInvisible(selectedItems);
 	}
 
+	public void doDelete() {
+		if(mPrepareDeleteTweets.size() > 0) {
+			// remove locally
+			for(Tweet tweet : mPrepareDeleteTweets) {
+				mTweets.remove(tweet);
+			}
+
+			// update adapter
+			mAdapter.makeAllVisible(false);
+			mAdapter.replaceAll(mTweets);
+
+			// call to webservice
+			mWebService.delete(mPrepareDeleteTweets);
+		}
+	}
+
 	public void undoPrepareDelete() {
-		mAdapter.makeAllVisible();
+		mPrepareDeleteTweets.clear();
+		mAdapter.makeAllVisible(true);
 	}
 
 }

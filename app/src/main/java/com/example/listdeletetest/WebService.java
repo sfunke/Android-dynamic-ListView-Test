@@ -17,4 +17,6 @@ public interface WebService {
 
 	void fetchNext(int limit);
 
+	void delete(List<Tweet> tweets);
+
 }

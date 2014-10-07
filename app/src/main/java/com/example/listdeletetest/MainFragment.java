@@ -138,7 +138,7 @@ public class MainFragment extends Fragment {
 							.setListener(new UndoBar.Listener() {
 								@Override
 								public void onHide() {
-
+									mListController.doDelete();
 								}
 
 								@Override

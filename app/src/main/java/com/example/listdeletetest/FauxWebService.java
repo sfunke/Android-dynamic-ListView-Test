@@ -25,7 +25,7 @@ public class FauxWebService implements WebService {
 
 	public FauxWebService(Context context) {
 		mContext = context;
-		loadFromResource(R.raw.tweets);
+		loadFromResource(R.raw.tweets2);
 	}
 
 	private void loadFromResource(int resID) {
@@ -39,11 +39,11 @@ public class FauxWebService implements WebService {
 			mNewTweets = new ArrayList<Tweet>();
 
 			final int count = tweets.length();
-			for (int i = 0; i < 50; i++) {
+			for (int i = 0; i < 20; i++) {
 				final JSONObject tweet = (JSONObject) tweets.get(i);
 				mNewTweets.add(new Tweet(tweet));
 			}
-			for (int i = 50; i < count; i++) {
+			for (int i = 20; i < count; i++) {
 				final JSONObject tweet = (JSONObject) tweets.get(i);
 				mTweets.add(new Tweet(tweet));
 			}
@@ -78,6 +78,11 @@ public class FauxWebService implements WebService {
 
 			}
 		}, 1000);
+	}
+
+	@Override
+	public void delete(List<Tweet> tweets) {
+		mTweets.removeAll(tweets);
 	}
 
 	@Override
