@@ -15,16 +15,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 
+import com.example.listdeletetest.model.Tweet;
 import com.jensdriller.libs.undobar.UndoBar;
 
+import java.util.ArrayList;
 
-/**
- * A simple {@link Fragment} subclass.
- */
+
 public class MainFragment extends Fragment {
 	private ListController mListController;
 	private AbsListView mListView;
 	private SwipeRefreshLayout mSwipeLayout;
+	private boolean mUserScrolled;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -41,7 +42,8 @@ public class MainFragment extends Fragment {
 				mListController.refreshNewest();
 			}
 		});
-		mSwipeLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
+		mSwipeLayout.setColorSchemeResources(
+				android.R.color.holo_blue_bright,
 				android.R.color.holo_green_light,
 				android.R.color.holo_orange_light,
 				android.R.color.holo_red_light);
@@ -62,13 +64,14 @@ public class MainFragment extends Fragment {
 		mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
-
+//				mUserScrolled = (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
 			}
 
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
 				int visibleCount = firstVisibleItem + visibleItemCount;
-				if(visibleCount > (totalItemCount - 5)) {
+//				if(mUserScrolled && visibleCount > (totalItemCount - 2)) {
+				if (visibleCount > (totalItemCount - 2)) {
 					mSwipeLayout.setRefreshing(true);
 					mListController.fetchNext();
 				}
@@ -118,13 +121,18 @@ public class MainFragment extends Fragment {
 
 					SparseBooleanArray checked = getListView().getCheckedItemPositions();
 					long[] checkedItemIds = getListView().getCheckedItemIds();
-//						for (int i = 0; i < checked.size(); i++) {
-//							if(checked.valueAt(i) == true) {
-//								Tweet tweet = (Tweet) getListView().getItemAtPosition(checked.keyAt(i));
-//								Log.i("xxxx", i + " " + tweet);
-//							}
-//						}
-//						mListController.prepareDelete(checked)
+
+					ArrayList<Tweet> selectedItems = new ArrayList<Tweet>();
+					for (int i = 0; i < checked.size(); i++) {
+						// Item position in adapter
+						int position = checked.keyAt(i);
+						// Add sport if it is checked i.e.) == TRUE!
+						if (checked.valueAt(i))
+							selectedItems.add((Tweet) getListView().getAdapter().getItem(position));
+					}
+					mListController.prepareDelete(selectedItems);
+
+
 					new UndoBar.Builder(getActivity())
 							.setMessage("Delete " + getListView().getCheckedItemCount() + " items")
 							.setListener(new UndoBar.Listener() {
@@ -135,7 +143,7 @@ public class MainFragment extends Fragment {
 
 								@Override
 								public void onUndo(Parcelable parcelable) {
-
+									mListController.undoPrepareDelete();
 								}
 							})
 							.show();

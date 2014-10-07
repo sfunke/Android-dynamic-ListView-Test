@@ -4,16 +4,21 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Filterable;
 
 import com.example.listdeletetest.model.Tweet;
 import com.example.listdeletetest.widget.TweetItemView;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
-public class MyAdapter extends ArrayAdapter<Tweet> implements Filterable {
+public class MyAdapter extends ArrayAdapter<Tweet> {
+	private final static int VIEW_TYPE_INVISIBLE = 0;
+	private static int VIEW_TYPE_DEFAULT = 1;
+
 	private LinkedList<Tweet> mList;
+	private Set<Integer> mInvisibleItems = new HashSet<Integer>();
 
 	public static MyAdapter istantiate(Context context) {
 		return new MyAdapter(context, new LinkedList<Tweet>());
@@ -26,21 +31,45 @@ public class MyAdapter extends ArrayAdapter<Tweet> implements Filterable {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		final TweetItemView itemView;
-		if(convertView == null) {
-			itemView = new TweetItemView(getContext());
-		} else {
-			itemView = (TweetItemView) convertView;
-		}
-		Tweet tweet = getItem(position);
-		itemView.update(tweet);
+		switch (getItemViewType(position)) {
+			case VIEW_TYPE_INVISIBLE:
+				if (convertView == null) {
+					convertView = new View(getContext());
+				}
+				return convertView;
 
-		return itemView;
+			default:
+				TweetItemView itemView;
+				if (convertView == null) {
+					itemView = new TweetItemView(getContext());
+				} else {
+					itemView = (TweetItemView) convertView;
+				}
+				Tweet tweet = getItem(position);
+				itemView.update(tweet);
+				return itemView;
+		}
+	}
+
+	@Override
+	public int getItemViewType(int position) {
+		Tweet item = getItem(position);
+		if (mInvisibleItems.contains(item.hashCode())) {
+			return VIEW_TYPE_INVISIBLE;
+		}
+		return VIEW_TYPE_DEFAULT;
+	}
+
+	@Override
+	public int getViewTypeCount() {
+		return 2;
 	}
 
 	@Override
 	public long getItemId(int position) {
-		return getItem(position).getId();
+		Tweet item = getItem(position);
+		int i = item.hashCode();
+		return i;
 	}
 
 	@Override
@@ -48,16 +77,23 @@ public class MyAdapter extends ArrayAdapter<Tweet> implements Filterable {
 		return true;
 	}
 
-	public void addAllToHead(List<Tweet> tweets) {
-		for(Tweet tweet : tweets) {
-			mList.add(0, tweet);
+	public void replaceAll(List<Tweet> tweets) {
+		synchronized (this) {
+			mList.clear();
+			mList.addAll(tweets);
+			notifyDataSetChanged();
+		}
+	}
+
+	public void makeInvisible(List<Tweet> items) {
+		for (Tweet tweet : items) {
+			mInvisibleItems.add(tweet.hashCode());
 		}
 		notifyDataSetChanged();
 	}
 
-	public void replaceAll(List<Tweet> tweets) {
-		mList.clear();
-		mList.addAll(tweets);
+	public void makeAllVisible() {
+		mInvisibleItems.clear();
 		notifyDataSetChanged();
 	}
 }

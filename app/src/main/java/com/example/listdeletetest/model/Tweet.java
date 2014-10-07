@@ -26,21 +26,22 @@ public class Tweet {
     private static final String JSON_PROFILE_IMAGE_URL = "profileImageUrl";
     private static final String JSON_POST_IMAGE_URL = "postImageUrl";
 
-    private final long mId;
+    private final String mId;
     private final String mAuthorName;
     private final String mMessage;
     private final String mProfileImageUrl;
     private final String mPostImageUrl;
+	private int mHashCode;
 
-    public Tweet(JSONObject jsonTweet) throws JSONException {
-        mId = jsonTweet.getLong(JSON_ID);
+	public Tweet(JSONObject jsonTweet) throws JSONException {
+        mId = String.valueOf(jsonTweet.getLong(JSON_ID));
         mMessage = jsonTweet.getString(JSON_MESSAGE);
         mAuthorName = jsonTweet.getString(JSON_AUTHOR_NAME);
         mProfileImageUrl = jsonTweet.getString(JSON_PROFILE_IMAGE_URL);
         mPostImageUrl = jsonTweet.optString(JSON_POST_IMAGE_URL, null);
     }
 
-    public long getId() {
+    public String getId() {
         return mId;
     }
 
@@ -74,7 +75,12 @@ public class Tweet {
         return (mId == other.mId);
     }
 
-    @Override
+	@Override
+	public int hashCode() {
+		return mId.hashCode();
+	}
+
+	@Override
     public String toString() {
         return "Tweet@" + mId;
     }

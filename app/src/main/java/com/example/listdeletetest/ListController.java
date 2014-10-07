@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ListController implements WebService.Delegate {
-	private boolean mIsRefreshing;
+	private boolean mIsBusy;
 
 	public static interface RefreshCompleteDelegate {
 		void handleRefreshComplete();
@@ -39,7 +39,7 @@ public class ListController implements WebService.Delegate {
 
 
 	public void fetchInitial() {
-		if(mIsRefreshing)
+		if(mIsBusy)
 			return;
 
 		mAdapter.addAll(mTweets);
@@ -50,18 +50,18 @@ public class ListController implements WebService.Delegate {
 	}
 
 	public void fetchNext() {
-		if(mIsRefreshing)
+		if(mIsBusy)
 			return;
 
-		mIsRefreshing = true;
+		mIsBusy = true;
 		mWebService.fetchNext(NEXT_REQUEST_LIMIT);
 	}
 
 	public void refreshNewest() {
-		if(mIsRefreshing)
+		if(mIsBusy)
 			return;
 
-		mIsRefreshing = true;
+		mIsBusy = true;
 		mWebService.fetchNewest(NEWEST_REQUEST_LIMIT);
 	}
 
@@ -73,7 +73,7 @@ public class ListController implements WebService.Delegate {
 		mAdapter.replaceAll(mTweets);
 //		mAdapter.addAll(mTweets);
 		mRefreshCompleteDelegate.handleRefreshComplete();
-		mIsRefreshing = false;
+		mIsBusy = false;
 	}
 
 	@Override
@@ -83,7 +83,15 @@ public class ListController implements WebService.Delegate {
 		}
 		mAdapter.replaceAll(mTweets);
 		mRefreshCompleteDelegate.handleRefreshComplete();
-		mIsRefreshing = false;
+		mIsBusy = false;
+	}
+
+	public void prepareDelete(ArrayList<Tweet> selectedItems) {
+		mAdapter.makeInvisible(selectedItems);
+	}
+
+	public void undoPrepareDelete() {
+		mAdapter.makeAllVisible();
 	}
 
 }
