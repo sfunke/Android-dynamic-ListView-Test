@@ -10,8 +10,10 @@ public class ListController implements WebService.Delegate {
 	private final ArrayList<Tweet> mPrepareDeleteTweets;
 	private boolean mIsBusy;
 
-	public static interface RefreshCompleteDelegate {
-		void handleRefreshComplete();
+	public static interface RequestStateChangeDelegate {
+		void handleRequestStart();
+
+		void handleRequestComplete();
 	}
 
 	public static int INITIAL_COUNT = 10;
@@ -21,10 +23,10 @@ public class ListController implements WebService.Delegate {
 	private WebService mWebService;
 	private ListAdapter mAdapter;
 	private List<Tweet> mMasterList;
-	private RefreshCompleteDelegate mRefreshCompleteDelegate;
+	private RequestStateChangeDelegate mRequestStateChangeDelegate;
 
-	public void setRefreshCompleteDelegate(RefreshCompleteDelegate refreshCompleteDelegate) {
-		mRefreshCompleteDelegate = refreshCompleteDelegate;
+	public void setRequestStateChangeDelegate(RequestStateChangeDelegate requestStateChangeDelegate) {
+		mRequestStateChangeDelegate = requestStateChangeDelegate;
 	}
 
 	public ListController(WebService webService, ListAdapter adapter) {
@@ -38,54 +40,58 @@ public class ListController implements WebService.Delegate {
 
 
 	public void fetchInitial() {
-		if(mIsBusy)
+		if (mIsBusy)
 			return;
 
-		if(mMasterList.size() > 0) {
+		if (mMasterList.size() > 0) {
 			mAdapter.replaceAll(mMasterList);
 		}
 
-		if(mMasterList.size() < INITIAL_COUNT) {
+		if (mMasterList.size() < INITIAL_COUNT) {
 			mIsBusy = true;
 			mWebService.fetchNext(INITIAL_COUNT);
 		}
 	}
 
-	public void fetchNext() {
-		if(mIsBusy)
+	public void fetchBottom() {
+		if (mIsBusy)
 			return;
 
 		mIsBusy = true;
+		mRequestStateChangeDelegate.handleRequestStart();
 		mWebService.fetchNext(NEXT_REQUEST_LIMIT);
 	}
 
-	public void refreshNewest() {
-		if(mIsBusy)
+	public void fetchTop() {
+		if (mIsBusy)
 			return;
 
 		mIsBusy = true;
+		mRequestStateChangeDelegate.handleRequestStart();
 		mWebService.fetchNewest(NEWEST_REQUEST_LIMIT);
 	}
 
 
 	@Override
 	public void handleResultNext(List<Tweet> tweets) {
-		for(Tweet tweet : tweets) {
-			mMasterList.add(tweet);
+		if (tweets != null && tweets.size() > 0) { // <= prevent adapter notifychanged when there are no new items
+			for (Tweet tweet : tweets) {
+				mMasterList.add(tweet);
+			}
+			mAdapter.replaceAll(mMasterList);
 		}
-		mAdapter.replaceAll(mMasterList);
-		mRefreshCompleteDelegate.handleRefreshComplete();
+		mRequestStateChangeDelegate.handleRequestComplete();
 		mIsBusy = false;
 	}
 
 
 	@Override
 	public void handleResultNewest(List<Tweet> tweets) {
-		for(Tweet tweet : tweets) {
+		for (Tweet tweet : tweets) {
 			mMasterList.add(0, tweet);
 		}
 		mAdapter.replaceAll(mMasterList);
-		mRefreshCompleteDelegate.handleRefreshComplete();
+		mRequestStateChangeDelegate.handleRequestComplete();
 		mIsBusy = false;
 	}
 
@@ -95,9 +101,9 @@ public class ListController implements WebService.Delegate {
 	}
 
 	public void doDelete() {
-		if(mPrepareDeleteTweets.size() > 0) {
+		if (mPrepareDeleteTweets.size() > 0) {
 			// remove locally
-			for(Tweet tweet : mPrepareDeleteTweets) {
+			for (Tweet tweet : mPrepareDeleteTweets) {
 				mMasterList.remove(tweet);
 			}
 

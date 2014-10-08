@@ -41,7 +41,7 @@ public class MainFragment extends Fragment {
 		mSwipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 			@Override
 			public void onRefresh() {
-				mListController.refreshNewest();
+				mListController.fetchTop();
 			}
 		});
 		mSwipeLayout.setColorSchemeResources(
@@ -55,9 +55,14 @@ public class MainFragment extends Fragment {
 		ListAdapter adapter = ListAdapter.instantiate(getActivity());
 
 		mListController = new ListController(webService, adapter);
-		mListController.setRefreshCompleteDelegate(new ListController.RefreshCompleteDelegate() {
+		mListController.setRequestStateChangeDelegate(new ListController.RequestStateChangeDelegate() {
 			@Override
-			public void handleRefreshComplete() {
+			public void handleRequestStart() {
+				mSwipeLayout.setRefreshing(true);
+			}
+
+			@Override
+			public void handleRequestComplete() {
 				mSwipeLayout.setRefreshing(false);
 			}
 		});
@@ -79,8 +84,7 @@ public class MainFragment extends Fragment {
 
 				int visibleCount = firstVisibleItem + visibleItemCount;
 				if (visibleCount > (totalItemCount - 2)) {
-					mSwipeLayout.setRefreshing(true);
-					mListController.fetchNext();
+					mListController.fetchBottom();
 				}
 			}
 		});

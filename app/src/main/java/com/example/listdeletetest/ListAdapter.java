@@ -80,6 +80,9 @@ public class ListAdapter extends ArrayAdapter<Tweet> {
 	}
 
 	public void replaceAll(List<Tweet> tweets) {
+		if(tweets == null || tweets.size() == 0)
+			return;
+
 		synchronized (this) {
 			mList.clear();
 			mList.addAll(tweets);
