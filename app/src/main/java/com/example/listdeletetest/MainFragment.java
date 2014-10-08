@@ -86,7 +86,7 @@ public class MainFragment extends Fragment {
 				if (!mUserHasInitiallyScrolled) return;
 
 				int visibleCount = firstVisibleItem + visibleItemCount;
-				if (visibleCount > (totalItemCount - 4)) {
+				if (visibleCount > (totalItemCount - 5)) {
 					mListController.fetchBottom();
 				}
 			}
@@ -97,7 +97,6 @@ public class MainFragment extends Fragment {
 				if(mActionMode != null) {
 					boolean itemChecked = mListView.isItemChecked(position);
 					boolean newCheckedValue = !itemChecked;
-//					((TweetItemView) view).setChecked(newCheckedValue);
 					mListView.setItemChecked(position, newCheckedValue);
 				}
 
@@ -107,6 +106,9 @@ public class MainFragment extends Fragment {
 			@Override
 			public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 				mActionMode = getActivity().startActionMode(mMultiChoiceModeListener);
+				boolean itemChecked = mListView.isItemChecked(position);
+				boolean newCheckedValue = !itemChecked;
+				mListView.setItemChecked(position, newCheckedValue);
 				return true;
 			}
 		});
