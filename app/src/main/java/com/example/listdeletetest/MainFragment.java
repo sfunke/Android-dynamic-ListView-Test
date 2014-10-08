@@ -20,7 +20,6 @@ import com.etsy.android.grid.ExtendableListView;
 import com.example.listdeletetest.model.Tweet;
 import com.example.listdeletetest.webservice.FauxWebService;
 import com.example.listdeletetest.webservice.WebService;
-import com.example.listdeletetest.widget.TweetItemView;
 import com.jensdriller.libs.undobar.UndoBar;
 
 import java.util.ArrayList;
@@ -98,7 +97,7 @@ public class MainFragment extends Fragment {
 				if(mActionMode != null) {
 					boolean itemChecked = mListView.isItemChecked(position);
 					boolean newCheckedValue = !itemChecked;
-					((TweetItemView) view).setChecked(newCheckedValue);
+//					((TweetItemView) view).setChecked(newCheckedValue);
 					mListView.setItemChecked(position, newCheckedValue);
 				}
 

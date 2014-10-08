@@ -42,6 +42,7 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.Checkable;
 import android.widget.ListAdapter;
 import android.widget.OverScroller;
 
@@ -747,6 +748,10 @@ public abstract class ExtendableListView extends AbsListView {
 
 	@Override
 	protected void handleDataChanged() {
+		if (mChoiceMode != CHOICE_MODE_NONE && mAdapter != null && mAdapter.hasStableIds()) {
+			confirmCheckedPositionsById();
+		}
+
 		super.handleDataChanged();
 
 		final int count = mItemCount;
@@ -1837,6 +1842,15 @@ public abstract class ExtendableListView extends AbsListView {
 			child.setPressed(isPressed);
 		}
 
+		if (mChoiceMode != CHOICE_MODE_NONE && mCheckStates != null) {
+			if (child instanceof Checkable) {
+				((Checkable) child).setChecked(mCheckStates.get(position));
+			} else if (getContext().getApplicationInfo().targetSdkVersion
+					>= android.os.Build.VERSION_CODES.HONEYCOMB) {
+				child.setActivated(mCheckStates.get(position));
+			}
+		}
+
 		if (needToMeasure) {
 			if (DBG) Log.d(TAG, "setupChild onMeasureChild position:" + position);
 			onMeasureChild(child, layoutParams);
@@ -2304,6 +2318,143 @@ public abstract class ExtendableListView extends AbsListView {
 			requestLayout();
 		}
 	}
+
+	@Override
+	public boolean performItemClick(View view, int position, long id) {
+		boolean handled = false;
+		boolean dispatchItemClick = true;
+
+		if (mChoiceMode != CHOICE_MODE_NONE) {
+			handled = true;
+			boolean checkedStateChanged = false;
+
+			if (mChoiceMode == CHOICE_MODE_MULTIPLE ||
+					(mChoiceMode == CHOICE_MODE_MULTIPLE_MODAL && mChoiceActionMode != null)) {
+				boolean checked = !mCheckStates.get(position, false);
+				mCheckStates.put(position, checked);
+				if (mCheckedIdStates != null && mAdapter.hasStableIds()) {
+					if (checked) {
+						mCheckedIdStates.put(mAdapter.getItemId(position), position);
+					} else {
+						mCheckedIdStates.delete(mAdapter.getItemId(position));
+					}
+				}
+				if (checked) {
+					mCheckedItemCount++;
+				} else {
+					mCheckedItemCount--;
+				}
+				if (mChoiceActionMode != null) {
+					mMultiChoiceModeCallback.onItemCheckedStateChanged(mChoiceActionMode,
+							position, id, checked);
+					dispatchItemClick = false;
+				}
+				checkedStateChanged = true;
+			} else if (mChoiceMode == CHOICE_MODE_SINGLE) {
+				boolean checked = !mCheckStates.get(position, false);
+				if (checked) {
+					mCheckStates.clear();
+					mCheckStates.put(position, true);
+					if (mCheckedIdStates != null && mAdapter.hasStableIds()) {
+						mCheckedIdStates.clear();
+						mCheckedIdStates.put(mAdapter.getItemId(position), position);
+					}
+					mCheckedItemCount = 1;
+				} else if (mCheckStates.size() == 0 || !mCheckStates.valueAt(0)) {
+					mCheckedItemCount = 0;
+				}
+				checkedStateChanged = true;
+			}
+
+			if (checkedStateChanged) {
+				updateOnScreenCheckedViews();
+			}
+		}
+
+		if (dispatchItemClick) {
+			handled |= super.performItemClick(view, position, id);
+		}
+
+		return handled;
+	}
+
+	/**
+	 * Perform a quick, in-place update of the checked or activated state
+	 * on all visible item views. This should only be called when a valid
+	 * choice mode is active.
+	 */
+	private void updateOnScreenCheckedViews() {
+		final int firstPos = mFirstPosition;
+		final int count = getChildCount();
+		final boolean useActivated = getContext().getApplicationInfo().targetSdkVersion
+				>= android.os.Build.VERSION_CODES.HONEYCOMB;
+		for (int i = 0; i < count; i++) {
+			final View child = getChildAt(i);
+			final int position = firstPos + i;
+
+			if (child instanceof Checkable) {
+				((Checkable) child).setChecked(mCheckStates.get(position));
+			} else if (useActivated) {
+				child.setActivated(mCheckStates.get(position));
+			}
+		}
+	}
+
+	/**
+	 * How many positions in either direction we will search to try to
+	 * find a checked item with a stable ID that moved position across
+	 * a data set change. If the item isn't found it will be unselected.
+	 */
+	private static final int CHECK_POSITION_SEARCH_DISTANCE = 20;
+
+	void confirmCheckedPositionsById() {
+		// Clear out the positional check states, we'll rebuild it below from IDs.
+		mCheckStates.clear();
+
+		boolean checkedCountChanged = false;
+		for (int checkedIndex = 0; checkedIndex < mCheckedIdStates.size(); checkedIndex++) {
+			final long id = mCheckedIdStates.keyAt(checkedIndex);
+			final int lastPos = mCheckedIdStates.valueAt(checkedIndex);
+
+			final long lastPosId = mAdapter.getItemId(lastPos);
+			if (id != lastPosId) {
+				// Look around to see if the ID is nearby. If not, uncheck it.
+				final int start = Math.max(0, lastPos - CHECK_POSITION_SEARCH_DISTANCE);
+				final int end = Math.min(lastPos + CHECK_POSITION_SEARCH_DISTANCE, mItemCount);
+				boolean found = false;
+				for (int searchPos = start; searchPos < end; searchPos++) {
+					final long searchId = mAdapter.getItemId(searchPos);
+					if (id == searchId) {
+						found = true;
+						mCheckStates.put(searchPos, true);
+						mCheckedIdStates.setValueAt(checkedIndex, searchPos);
+						break;
+					}
+				}
+
+				if (!found) {
+					mCheckedIdStates.delete(id);
+					checkedIndex--;
+					mCheckedItemCount--;
+					checkedCountChanged = true;
+					if (mChoiceActionMode != null && mMultiChoiceModeCallback != null) {
+						mMultiChoiceModeCallback.onItemCheckedStateChanged(mChoiceActionMode,
+								lastPos, id, false);
+					}
+				}
+			} else {
+				mCheckStates.put(lastPos, true);
+			}
+		}
+
+		if (checkedCountChanged && mChoiceActionMode != null) {
+			mChoiceActionMode.invalidate();
+		}
+	}
+
+
+
+
 	/**
 	 * @see #setChoiceMode(int)
 	 *
