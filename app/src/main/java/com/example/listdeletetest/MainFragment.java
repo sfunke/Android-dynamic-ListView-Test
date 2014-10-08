@@ -14,10 +14,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 
+import com.etsy.android.grid.ExtendableListView;
 import com.example.listdeletetest.model.Tweet;
 import com.example.listdeletetest.webservice.FauxWebService;
 import com.example.listdeletetest.webservice.WebService;
+import com.example.listdeletetest.widget.TweetItemView;
 import com.jensdriller.libs.undobar.UndoBar;
 
 import java.util.ArrayList;
@@ -28,6 +31,7 @@ public class MainFragment extends Fragment {
 	private AbsListView mListView;
 	private SwipeRefreshLayout mSwipeLayout;
 	private boolean mUserHasInitiallyScrolled;
+	private ActionMode mActionMode;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -69,23 +73,42 @@ public class MainFragment extends Fragment {
 
 		mListView.setAdapter(adapter);
 		mListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
-		mListView.setMultiChoiceModeListener(mMultiChoiceModeListener);
+		((ExtendableListView)mListView).setMultiChoiceModeListener(mMultiChoiceModeListener);
 		mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
-				if(scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
+				if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
 					mUserHasInitiallyScrolled = true; // <= prevents from initially onScroll being called when set as ScrollListener
 				}
 			}
 
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-				if(!mUserHasInitiallyScrolled) return;
+				if (!mUserHasInitiallyScrolled) return;
 
 				int visibleCount = firstVisibleItem + visibleItemCount;
-				if (visibleCount > (totalItemCount - 2)) {
+				if (visibleCount > (totalItemCount - 4)) {
 					mListController.fetchBottom();
 				}
+			}
+		});
+		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				if(mActionMode != null) {
+					boolean itemChecked = mListView.isItemChecked(position);
+					boolean newCheckedValue = !itemChecked;
+					((TweetItemView) view).setChecked(newCheckedValue);
+					mListView.setItemChecked(position, newCheckedValue);
+				}
+
+			}
+		});
+		mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+				mActionMode = getActivity().startActionMode(mMultiChoiceModeListener);
+				return true;
 			}
 		});
 
@@ -95,7 +118,7 @@ public class MainFragment extends Fragment {
 	}
 
 
-	private AbsListView.MultiChoiceModeListener mMultiChoiceModeListener = new AbsListView.MultiChoiceModeListener() {
+	private ExtendableListView.MultiChoiceModeListener mMultiChoiceModeListener = new ExtendableListView.MultiChoiceModeListener() {
 		@Override
 		public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
 			final int checkedCount = getListView().getCheckedItemCount();
