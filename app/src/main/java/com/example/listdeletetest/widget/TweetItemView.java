@@ -68,7 +68,7 @@ public class TweetItemView extends RelativeLayout implements Checkable {
 	}
 
 	public void update(Tweet tweet) {
-		mAuthorText.setText(tweet.getAuthorName());
+		mAuthorText.setText(String.valueOf(tweet.getTimeStamp()) + " : " + tweet.getAuthorName());
 		mMessageText.setText(tweet.getMessage());
 
 		final Context context = getContext();

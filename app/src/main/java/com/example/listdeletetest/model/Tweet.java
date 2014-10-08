@@ -31,17 +31,24 @@ public class Tweet {
     private final String mMessage;
     private final String mProfileImageUrl;
     private final String mPostImageUrl;
+	private final long mTimeStamp;
 	private int mHashCode;
 
-	public Tweet(JSONObject jsonTweet) throws JSONException {
+	public Tweet(JSONObject jsonTweet, long timeStamp) throws JSONException {
         mId = jsonTweet.getString(JSON_ID);
         mMessage = jsonTweet.getString(JSON_MESSAGE);
         mAuthorName = jsonTweet.getString(JSON_AUTHOR_NAME);
         mProfileImageUrl = jsonTweet.getString(JSON_PROFILE_IMAGE_URL);
         mPostImageUrl = jsonTweet.isNull(JSON_POST_IMAGE_URL) ? null : jsonTweet.optString(JSON_POST_IMAGE_URL, null);
+
+		mTimeStamp = timeStamp;
     }
 
-    public String getId() {
+	public long getTimeStamp() {
+		return mTimeStamp;
+	}
+
+	public String getId() {
         return mId;
     }
 
