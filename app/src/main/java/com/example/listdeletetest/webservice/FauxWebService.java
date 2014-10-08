@@ -40,16 +40,12 @@ public class FauxWebService implements WebService {
 			final JSONArray tweets = RawResource.getAsJSON(mContext, resID);
 			mTweets = new ArrayList<Tweet>();
 
-			// TODO : fake add timestamp and reverse!
-
 			final int count = tweets.length();
-//			long now = new Date().getTime();
-			long now = count;
+			long now = count; // <= fake timestamp to add to each tweet to allow since / before
 
 			for (int i = 0; i < count; i++) {
 				final JSONObject tweet = (JSONObject) tweets.get(i);
 				mTweets.add(new Tweet(tweet, now));
-//				now -= 30 * 60 * 1000;
 				now -= 1;
 			}
 		} catch (Exception e) {
@@ -62,30 +58,6 @@ public class FauxWebService implements WebService {
 		mDelegate = delegate;
 	}
 
-/*
-	@Override
-	public void fetchNext(final int limit) {
-		mHandler.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-
-				synchronized (this) {
-					List<Tweet> result = new ArrayList<Tweet>();
-					for (int i = 0; i < limit; i++) {
-						try {
-							Tweet tweet = mTweets.remove(0);
-							result.add(tweet);
-						} catch (Exception e) {
-
-						}
-					}
-					mDelegate.handleResultNext(result);
-				}
-
-			}
-		}, 1000);
-	}
-*/
 
 	@Override
 	public void delete(List<Tweet> tweets) {
@@ -93,30 +65,6 @@ public class FauxWebService implements WebService {
 			mTweets.removeAll(tweets);
 		}
 	}
-
-/*
-	@Override
-	public void fetchNewest(final int limit) {
-		mHandler.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				synchronized (this) {
-					List<Tweet> result = new ArrayList<Tweet>();
-					int lim = (int) Math.floor(Math.random() * (limit))+1;
-					Log.d("XXX", "lim " + lim);
-					for (int i = 0; i < lim; i++) {
-						try {
-							Tweet tweet = mNewTweets.remove(mNewTweets.size() - 1);
-							result.add(tweet);
-						} catch (Exception e) {
-						}
-					}
-					mDelegate.handleResultNewest(result);
-				}
-			}
-		}, 1000);
-	}
-*/
 
 	@Override
 	public void fetchBefore(final long timeStamp, final int limit) {

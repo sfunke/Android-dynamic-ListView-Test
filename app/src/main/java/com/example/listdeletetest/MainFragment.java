@@ -134,9 +134,7 @@ public class MainFragment extends Fragment {
 
 					ArrayList<Tweet> selectedItems = new ArrayList<Tweet>();
 					for (int i = 0; i < checked.size(); i++) {
-						// Item position in adapter
 						int position = checked.keyAt(i);
-						// Add sport if it is checked i.e.) == TRUE!
 						if (checked.valueAt(i))
 							selectedItems.add((Tweet) getListView().getAdapter().getItem(position));
 					}

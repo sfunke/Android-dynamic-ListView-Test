@@ -4,7 +4,6 @@ import com.example.listdeletetest.model.Tweet;
 import com.example.listdeletetest.webservice.WebService;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class ListController implements WebService.Delegate {
@@ -50,7 +49,7 @@ public class ListController implements WebService.Delegate {
 
 		if (mMasterList.size() < INITIAL_COUNT) {
 			mIsBusy = true;
-			mWebService.fetchBefore(new Date().getTime(), INITIAL_COUNT); // <= fetch all before now
+			mWebService.fetchBefore(81, INITIAL_COUNT); // <= dummy timestamp, 20 before end of master list
 		}
 	}
 
