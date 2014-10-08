@@ -41,7 +41,6 @@ public class TweetItemView extends RelativeLayout implements Checkable {
 	private boolean mChecked;
 	private Paint mDividerPaint;
 	private final Paint mSelectionPaint;
-//	private final Drawable mDividerDrawable;
 
 	public TweetItemView(Context context) {
 		super(context);
@@ -68,7 +67,7 @@ public class TweetItemView extends RelativeLayout implements Checkable {
 	}
 
 	public void update(Tweet tweet) {
-		mAuthorText.setText(tweet.getAuthorName());
+		mAuthorText.setText(String.valueOf(tweet.getTimeStamp()) + " : " + tweet.getAuthorName());
 		mMessageText.setText(tweet.getMessage());
 
 		final Context context = getContext();
@@ -96,6 +95,7 @@ public class TweetItemView extends RelativeLayout implements Checkable {
 		int ch = canvas.getHeight();
 		int cw = canvas.getWidth();
 		if (mChecked) {
+			// checked state
 			canvas.drawRect(0, 0, cw, ch - 1, mSelectionPaint);
 		}
 

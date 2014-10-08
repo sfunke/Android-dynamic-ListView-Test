@@ -49,7 +49,7 @@ public class ListController implements WebService.Delegate {
 
 		if (mMasterList.size() < INITIAL_COUNT) {
 			mIsBusy = true;
-			mWebService.fetchNext(INITIAL_COUNT);
+			mWebService.fetchBefore(81, INITIAL_COUNT); // <= dummy timestamp, 20 before end of master list
 		}
 	}
 
@@ -57,18 +57,24 @@ public class ListController implements WebService.Delegate {
 		if (mIsBusy)
 			return;
 
-		mIsBusy = true;
-		mRequestStateChangeDelegate.handleRequestStart();
-		mWebService.fetchNext(NEXT_REQUEST_LIMIT);
+		Tweet lastItem = mMasterList.get(mMasterList.size() - 1);
+		if(lastItem != null) {
+			mIsBusy = true;
+			mRequestStateChangeDelegate.handleRequestStart();
+			mWebService.fetchBefore(lastItem.getTimeStamp(), NEXT_REQUEST_LIMIT); // <= fetch all older before existing last item
+		}
 	}
 
 	public void fetchTop() {
 		if (mIsBusy)
 			return;
 
-		mIsBusy = true;
-		mRequestStateChangeDelegate.handleRequestStart();
-		mWebService.fetchNewest(NEWEST_REQUEST_LIMIT);
+		Tweet firstItem = mMasterList.get(0);
+		if(firstItem != null) {
+			mIsBusy = true;
+			mRequestStateChangeDelegate.handleRequestStart();
+			mWebService.fetchSince(firstItem.getTimeStamp(), NEWEST_REQUEST_LIMIT); // <= fetch all new since existing first item
+		}
 	}
 
 
