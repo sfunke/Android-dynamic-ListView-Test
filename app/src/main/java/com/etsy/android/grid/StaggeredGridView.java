@@ -381,7 +381,8 @@ public class StaggeredGridView extends ExtendableListView {
 		if (isHeaderOrFooter(position)) {
 			layoutGridHeaderFooter(child, position, flowDown, childrenLeft, childTop, childRight, childBottom);
 		} else {
-			layoutGridChild(child, position, flowDown, childrenLeft, childRight);
+			int childHeight = childBottom - childTop;
+			layoutGridChild(child, position, flowDown, childHeight, childrenLeft, childRight);
 		}
 	}
 
@@ -410,6 +411,7 @@ public class StaggeredGridView extends ExtendableListView {
 
 	private void layoutGridChild(final View child, final int position,
 	                             final boolean flowDown,
+	                             final int childHeight,
 	                             final int childrenLeft, final int childRight) {
 		// stash the bottom and the top if it's higher positioned
 		int column = getPositionColumn(position);
@@ -417,8 +419,8 @@ public class StaggeredGridView extends ExtendableListView {
 		int gridChildTop;
 		int gridChildBottom;
 
-		int childTopMargin = getChildTopMargin(position);
-		int childBottomMargin = getChildBottomMargin(position);
+		int childTopMargin = childHeight > 0 ? getChildTopMargin(position) : 0;
+		int childBottomMargin = childHeight > 0 ? getChildBottomMargin(position) : 0;
 		int verticalMargins = childTopMargin + childBottomMargin;
 
 		if (flowDown) {
@@ -491,8 +493,9 @@ public class StaggeredGridView extends ExtendableListView {
 		int gridChildTop;
 		int gridChildBottom;
 
-		int childTopMargin = getChildTopMargin(position);
-		int childBottomMargin = getChildBottomMargin(position);
+		int childHeight = child.getMeasuredHeight();
+		int childTopMargin = childHeight > 0 ? getChildTopMargin(position) : 0;
+		int childBottomMargin = childHeight > 0 ? getChildBottomMargin(position) : 0;
 		int verticalMargins = childTopMargin + childBottomMargin;
 
 		if (flowDown) {

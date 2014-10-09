@@ -35,6 +35,7 @@ public class ListAdapter extends ArrayAdapter<Tweet> {
 			case VIEW_TYPE_INVISIBLE:
 				if (convertView == null) {
 					convertView = new View(getContext());
+					convertView.requestLayout();
 					convertView.setVisibility(View.GONE);
 				}
 				return convertView;

@@ -50,7 +50,7 @@ public class TweetItemView extends FrameLayout implements Checkable {
 		mProfileImage = (ImageView) findViewById(R.id.profile_image);
 		mAuthorText = (TextView) findViewById(R.id.author_text);
 		mDebugText = (TextView) findViewById(R.id.debug);
-		mDebugText.setVisibility(GONE);
+//		mDebugText.setVisibility(GONE);
 
 		// cell selection
 		mSelectionPaint = new Paint();
@@ -72,7 +72,7 @@ public class TweetItemView extends FrameLayout implements Checkable {
 		mPicW = Integer.parseInt(split[3]);
 		mPicH = Integer.parseInt(split[4]);
 
-		mRatio = (float)mPicH/(float)mPicW;
+		mRatio = (float) mPicH / (float) mPicW;
 
 
 		requestLayout(); // <= IMPORTANT! sets correct ratio of this tile
@@ -94,14 +94,14 @@ public class TweetItemView extends FrameLayout implements Checkable {
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 		int measuredWidth = getMeasuredWidth();
-		if(mRatio > 0) {
+		if (mRatio > 0) {
 			int measuredHeight = (int) (measuredWidth * mRatio);
 			int newHeightSpec = MeasureSpec.makeMeasureSpec(measuredHeight, MeasureSpec.EXACTLY);
 			int newWidthSpec = MeasureSpec.makeMeasureSpec(measuredWidth, MeasureSpec.EXACTLY);
-//			mDebugText.setText(
-//					String.format("pic: %d | %d", mPicW, mPicH) + "\n" +
-//					String.format("meas: %d | %d", measuredWidth, measuredHeight)
-//			);
+			mDebugText.setText(
+					String.format("pic: %d | %d", mPicW, mPicH) + "\n" +
+					String.format("meas: %d | %d", measuredWidth, measuredHeight)
+			);
 			super.onMeasure(newWidthSpec, newHeightSpec);
 		}
 	}
