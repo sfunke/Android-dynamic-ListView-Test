@@ -28,7 +28,7 @@ public class FauxWebService implements WebService {
 
 	public FauxWebService(Context context) {
 		mContext = context;
-		loadFromResource(R.raw.tweets);
+		loadFromResource(R.raw.tweets2);
 	}
 
 	private void loadFromResource(int resID) {
