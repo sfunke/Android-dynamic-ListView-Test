@@ -17,7 +17,7 @@ public class ListController implements WebService.Delegate {
 	}
 
 	public static int INITIAL_COUNT = 20;
-	public static int NEXT_REQUEST_LIMIT = 5;
+	public static int NEXT_REQUEST_LIMIT = 10;
 	public static int NEWEST_REQUEST_LIMIT = 2;
 
 	private WebService mWebService;
