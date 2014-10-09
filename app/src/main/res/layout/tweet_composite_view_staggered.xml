@@ -17,18 +17,25 @@
 
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <ImageView
         android:id="@+id/profile_image"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scaleType="centerCrop"/>
+        android:layout_height="match_parent"/>
+	<TextView
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+	    android:id="@+id/debug"
+	    android:gravity="right"
+	    android:background="#aaffffff"
+		/>
 
     <TextView
         android:id="@+id/author_text"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
         android:textColor="@color/tweet_author_text_color"
         android:textSize="@dimen/tweet_author_text_size"
         android:padding="8dp"

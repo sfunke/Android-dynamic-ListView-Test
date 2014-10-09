@@ -22,34 +22,35 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.widget.Checkable;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.listdeletetest.R;
 import com.example.listdeletetest.model.Tweet;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 
-public class TweetItemView extends LinearLayout implements Checkable {
+public class TweetItemView extends FrameLayout implements Checkable {
 	private final ImageView mProfileImage;
 	private final TextView mAuthorText;
+	private final TextView mDebugText;
 	private boolean mChecked;
-	private Paint mDividerPaint;
 	private final Paint mSelectionPaint;
+	private float mRatio = 0f;
+	private Target mTarget;
+	private int mPicW;
+	private int mPicH;
 
 	public TweetItemView(Context context) {
 		super(context);
 		LayoutInflater.from(context).inflate(R.layout.tweet_composite_view_staggered, this, true);
-		setOrientation(VERTICAL);
-		int padding = getResources().getDimensionPixelSize(R.dimen.tweet_padding);
-//		setPadding(padding, padding, padding, padding);
+
 		mProfileImage = (ImageView) findViewById(R.id.profile_image);
 		mAuthorText = (TextView) findViewById(R.id.author_text);
-
-		// custom divider, since we disabled list divider
-		mDividerPaint = new Paint();
-		mDividerPaint.setColor(0xffb7b7b7);
+		mDebugText = (TextView) findViewById(R.id.debug);
+		mDebugText.setVisibility(GONE);
 
 		// cell selection
 		mSelectionPaint = new Paint();
@@ -64,13 +65,45 @@ public class TweetItemView extends LinearLayout implements Checkable {
 	public void update(Tweet tweet) {
 		mAuthorText.setText(String.valueOf(tweet.getTimeStamp()) + " : " + tweet.getAuthorName());
 
+		// hack: get width and height of image url, for Ratio:
+		// e.g. http://lorempixel.com/318/770/people/6"
+		String profileImageUrl = tweet.getProfileImageUrl();
+		String[] split = profileImageUrl.split("/");
+		mPicW = Integer.parseInt(split[3]);
+		mPicH = Integer.parseInt(split[4]);
+
+		mRatio = (float)mPicH/(float)mPicW;
+
+
+		requestLayout(); // <= IMPORTANT! sets correct ratio of this tile
+
+
+		// load contents
 		final Context context = getContext();
-		Picasso.with(context)
-				.load(tweet.getProfileImageUrl())
+		Picasso picasso = Picasso.with(context);
+		picasso.setIndicatorsEnabled(true);
+		picasso
+				.load(profileImageUrl)
 				.placeholder(R.drawable.tweet_placeholder_image)
 				.error(R.drawable.tweet_placeholder_image)
 				.into(mProfileImage);
 
+	}
+
+	@Override
+	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+		int measuredWidth = getMeasuredWidth();
+		if(mRatio > 0) {
+			int measuredHeight = (int) (measuredWidth * mRatio);
+			int newHeightSpec = MeasureSpec.makeMeasureSpec(measuredHeight, MeasureSpec.EXACTLY);
+			int newWidthSpec = MeasureSpec.makeMeasureSpec(measuredWidth, MeasureSpec.EXACTLY);
+//			mDebugText.setText(
+//					String.format("pic: %d | %d", mPicW, mPicH) + "\n" +
+//					String.format("meas: %d | %d", measuredWidth, measuredHeight)
+//			);
+			super.onMeasure(newWidthSpec, newHeightSpec);
+		}
 	}
 
 	@Override
