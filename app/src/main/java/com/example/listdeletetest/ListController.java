@@ -49,6 +49,7 @@ public class ListController implements WebService.Delegate {
 
 		if (mMasterList.size() < INITIAL_COUNT) {
 			mIsBusy = true;
+			mRequestStateChangeDelegate.handleRequestStart();
 			mWebService.fetchBefore(81, INITIAL_COUNT); // <= dummy timestamp, 20 before end of master list
 		}
 	}

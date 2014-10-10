@@ -29,7 +29,6 @@ import android.widget.TextView;
 import com.example.listdeletetest.R;
 import com.example.listdeletetest.model.Tweet;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
 
 
 public class TweetItemView extends FrameLayout implements Checkable {
@@ -37,9 +36,9 @@ public class TweetItemView extends FrameLayout implements Checkable {
 	private final TextView mAuthorText;
 	private final TextView mDebugText;
 	private boolean mChecked;
+	private final Paint mPressedPaint;
 	private final Paint mSelectionPaint;
 	private float mRatio = 0f;
-	private Target mTarget;
 	private int mPicW;
 	private int mPicH;
 
@@ -55,6 +54,9 @@ public class TweetItemView extends FrameLayout implements Checkable {
 		// cell selection
 		mSelectionPaint = new Paint();
 		mSelectionPaint.setColor(Color.argb(55, 255, 0, 0));
+
+		mPressedPaint = new Paint();
+		mPressedPaint.setColor(Color.argb(55, 0, 0, 255));
 	}
 
 	@Override
@@ -116,6 +118,16 @@ public class TweetItemView extends FrameLayout implements Checkable {
 			// checked state
 			canvas.drawRect(0, 0, cw, ch - 1, mSelectionPaint);
 		}
+		if (isPressed()) {
+//			checked state
+			canvas.drawRect(0, 0, cw, ch - 1, mPressedPaint);
+		}
+	}
+
+	@Override
+	public void setPressed(boolean pressed) {
+		super.setPressed(pressed);
+		invalidate();
 	}
 
 	@Override

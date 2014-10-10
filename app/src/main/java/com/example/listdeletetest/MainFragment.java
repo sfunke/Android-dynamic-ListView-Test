@@ -188,7 +188,7 @@ public class MainFragment extends Fragment {
 
 		@Override
 		public void onDestroyActionMode(ActionMode mode) {
-
+			mActionMode = null;
 		}
 	};
 
