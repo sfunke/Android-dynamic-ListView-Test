@@ -2126,6 +2126,10 @@ public abstract class ExtendableListView extends AbsListView {
 	 */
 	ActionMode mChoiceActionMode;
 
+	public ActionMode getActionMode() {
+		return mChoiceActionMode;
+	}
+
 	/**
 	 * Wrapper for the multiple choice mode callback; AbsListView needs to perform
 	 * a few extra actions around what application code does.
@@ -2347,7 +2351,16 @@ public abstract class ExtendableListView extends AbsListView {
 				if (mChoiceActionMode != null) {
 					mMultiChoiceModeCallback.onItemCheckedStateChanged(mChoiceActionMode,
 							position, id, checked);
-					dispatchItemClick = false;
+
+
+					// if checkeditemcount == 0 means, that the actionmode is about to finish (no items selected)
+					// in this case, we want to ignore the following click event.
+					// in every other case, we want to be informed (e.g. to revert a selection)
+					// and check ourselves, whether we are in current actionmode or not
+					// (requires public getter to actionmode, see above.)
+					if(getCheckedItemCount() == 0) {
+						dispatchItemClick = false;
+					}
 				}
 				checkedStateChanged = true;
 			} else if (mChoiceMode == CHOICE_MODE_SINGLE) {

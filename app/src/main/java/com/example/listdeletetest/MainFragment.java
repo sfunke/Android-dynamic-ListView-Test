@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.Toast;
 
 import com.etsy.android.grid.ExtendableListView;
 import com.example.listdeletetest.model.Tweet;
@@ -30,7 +31,6 @@ public class MainFragment extends Fragment {
 	private AbsListView mListView;
 	private SwipeRefreshLayout mSwipeLayout;
 	private boolean mUserHasInitiallyScrolled;
-	private ActionMode mActionMode;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -94,10 +94,19 @@ public class MainFragment extends Fragment {
 		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				if(mActionMode != null) {
-					boolean itemChecked = mListView.isItemChecked(position);
-					boolean newCheckedValue = !itemChecked;
-					mListView.setItemChecked(position, newCheckedValue);
+				if(((ExtendableListView) mListView).getActionMode() != null) {
+
+					// check value, if e.g. this is an **important** image which should not be deleted,
+					// unset selection
+					if(id == 1608761649L) { // <= hardcoded value
+						boolean itemChecked = mListView.isItemChecked(position);
+						if(itemChecked) {
+							mListView.setItemChecked(position, false);
+							Toast.makeText(getActivity(), "This is your profile image, we don't allow selection", Toast.LENGTH_SHORT).show();
+						}
+					}
+				} else {
+					Toast.makeText(getActivity(), "Open Details", Toast.LENGTH_SHORT).show();
 				}
 
 			}
@@ -105,11 +114,19 @@ public class MainFragment extends Fragment {
 		mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 			@Override
 			public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-				mActionMode = getActivity().startActionMode(mMultiChoiceModeListener);
-				boolean itemChecked = mListView.isItemChecked(position);
-				boolean newCheckedValue = !itemChecked;
-				mListView.setItemChecked(position, newCheckedValue);
-				return true;
+				if(((ExtendableListView) mListView).getActionMode() == null) {
+					// check value, if e.g. this is an **important** image which should not be deleted,
+					// no item check
+					if(id == 1608761649L) { // <= hardcoded value
+						Toast.makeText(getActivity(), "This is your profile image, we don't allow selection", Toast.LENGTH_SHORT).show();
+						return true;
+					}
+
+					// this implicitely starts an actionmode!
+					mListView.setItemChecked(position, true);
+					return true;
+				}
+				return false;
 			}
 		});
 
@@ -188,7 +205,6 @@ public class MainFragment extends Fragment {
 
 		@Override
 		public void onDestroyActionMode(ActionMode mode) {
-			mActionMode = null;
 		}
 	};
 
