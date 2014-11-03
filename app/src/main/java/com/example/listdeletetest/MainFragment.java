@@ -5,6 +5,8 @@ import android.app.Fragment;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -14,8 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.Toast;
+import android.widget.ListView;
 
 import com.etsy.android.grid.ExtendableListView;
 import com.example.listdeletetest.model.Tweet;
@@ -28,7 +29,7 @@ import java.util.ArrayList;
 
 public class MainFragment extends Fragment {
 	private ListController mListController;
-	private AbsListView mListView;
+	private RecyclerView mListView;
 	private SwipeRefreshLayout mSwipeLayout;
 	private boolean mUserHasInitiallyScrolled;
 
@@ -39,7 +40,7 @@ public class MainFragment extends Fragment {
 
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
-		mListView = (AbsListView) view.findViewById(R.id.listView);
+		mListView = (RecyclerView) view.findViewById(R.id.listView);
 		mSwipeLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_container);
 		mSwipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 			@Override
@@ -70,9 +71,30 @@ public class MainFragment extends Fragment {
 			}
 		});
 
+		mListView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
 		mListView.setAdapter(adapter);
-		mListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
-		((ExtendableListView)mListView).setMultiChoiceModeListener(mMultiChoiceModeListener);
+		mListView.setLongClickable(true);
+//		mListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
+//		((ExtendableListView)mListView).setMultiChoiceModeListener(mMultiChoiceModeListener);
+		mListView.setOnScrollListener(new RecyclerView.OnScrollListener() {
+			@Override
+			public void onScrollStateChanged(RecyclerView recyclerView, int scrollState) {
+				if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
+					mUserHasInitiallyScrolled = true; // <= prevents from initially onScroll being called when set as ScrollListener
+				}
+			}
+
+			@Override
+			public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+				if (!mUserHasInitiallyScrolled) return;
+
+//				int visibleCount = firstVisibleItem + visibleItemCount;
+//				if (visibleCount > (totalItemCount - 5)) {
+//					mListController.fetchBottom();
+//				}
+			}
+		});
+/*
 		mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -91,6 +113,8 @@ public class MainFragment extends Fragment {
 				}
 			}
 		});
+*/
+/*
 		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -111,6 +135,8 @@ public class MainFragment extends Fragment {
 
 			}
 		});
+*/
+/*
 		mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 			@Override
 			public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
@@ -129,6 +155,7 @@ public class MainFragment extends Fragment {
 				return false;
 			}
 		});
+*/
 
 
 		// start
@@ -210,7 +237,7 @@ public class MainFragment extends Fragment {
 
 
 	public AbsListView getListView() {
-		return mListView;
+		return new ListView(getActivity());
 	}
 
 }

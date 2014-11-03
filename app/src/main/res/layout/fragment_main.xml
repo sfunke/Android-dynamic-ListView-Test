@@ -13,7 +13,7 @@
 	    android:background="#b7b7b7"
 		>
 
-		<com.etsy.android.grid.StaggeredGridView
+		<android.support.v7.widget.RecyclerView
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
 			android:clipToPadding="false"
@@ -22,8 +22,6 @@
 			android:paddingLeft="5dp"
 			android:paddingRight="5dp"
 			android:paddingBottom="5dp"
-			app:item_margin="5dp"
-			app:column_count="2"
 			android:id="@+id/listView"/>
 
 
