@@ -1,5 +1,6 @@
 package com.example.listdeletetest;
 
+import com.example.listdeletetest.adapter.MultiSelectionAdapter;
 import com.example.listdeletetest.model.Tweet;
 import com.example.listdeletetest.webservice.WebService;
 
@@ -21,7 +22,7 @@ public class ListController implements WebService.Delegate {
 	public static int NEWEST_REQUEST_LIMIT = 2;
 
 	private WebService mWebService;
-	private ListAdapter mAdapter;
+	private MultiSelectionAdapter mAdapter;
 	private List<Tweet> mMasterList;
 	private RequestStateChangeDelegate mRequestStateChangeDelegate;
 
@@ -29,7 +30,7 @@ public class ListController implements WebService.Delegate {
 		mRequestStateChangeDelegate = requestStateChangeDelegate;
 	}
 
-	public ListController(WebService webService, ListAdapter adapter) {
+	public ListController(WebService webService, MultiSelectionAdapter adapter) {
 		mAdapter = adapter;
 		mMasterList = new ArrayList<Tweet>();
 		mPrepareDeleteTweets = new ArrayList<Tweet>();

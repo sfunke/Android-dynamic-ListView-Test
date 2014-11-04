@@ -1,13 +1,10 @@
-package com.example.listdeletetest;
+package com.example.listdeletetest.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.example.listdeletetest.model.Tweet;
-import com.example.listdeletetest.widget.TweetItemView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,15 +14,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder> {
+public class MultiSelectionAdapter<T extends IAdapterItem> extends RecyclerView.Adapter<MultiSelectionAdapter.ItemViewHolder> {
 	private final static int VIEW_TYPE_INVISIBLE = 0;
 	private static int VIEW_TYPE_DEFAULT = 1;
 
-	private LinkedList<Tweet> mList;
-	private Set<Integer> mInvisibleItems = new HashSet<Integer>();
+	private LinkedList<T> mList = new LinkedList<T>();
+	private Set<Long> mInvisibleItems = new HashSet<Long>();
 	private List<Long> mSelectedItemIds = new LinkedList<Long>();
 	private Map<Long, IAdapterItem> mIdItemMap = new HashMap<Long, IAdapterItem>();
 	private Context mContext;
+	private IPresenter mItemPresenter;
 	private AdapterState mState;
 	private final Object mLock = new Object();
 	private Listener mListener;
@@ -45,24 +43,12 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 		void endReached();
 	}
 
-	public static interface IAdapterItem {
-		public long getItemId();
-
-		public boolean isSelected();
-
-		public void setSelected(boolean selected);
-	}
-
-
-	public static ListAdapter instantiate(Context context) {
-		return new ListAdapter(context, new LinkedList<Tweet>());
-	}
-
-	private ListAdapter(Context context, LinkedList<Tweet> list) {
+	public MultiSelectionAdapter(Context context, IPresenter itemPresenter) {
 		super();
-		setHasStableIds(true);
 		mContext = context;
-		mList = list;
+		mItemPresenter = itemPresenter;
+
+		setHasStableIds(true);
 		setState(new StateNormal());
 	}
 
@@ -77,8 +63,8 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 
 	@Override
 	public int getItemViewType(int position) {
-		Tweet item = mList.get(position);
-		if (mInvisibleItems.contains(item.hashCode())) {
+		T item = mList.get(position);
+		if (mInvisibleItems.contains(item.getItemId())) {
 			return VIEW_TYPE_INVISIBLE;
 		}
 		return VIEW_TYPE_DEFAULT;
@@ -86,19 +72,18 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 
 	@Override
 	public long getItemId(int position) {
-		Tweet item = mList.get(position);
-		int i = item.hashCode();
-		return i;
+		IAdapterItem item = mList.get(position);
+		return item.getItemId();
 	}
 
 
-	public List<Tweet> getSelectedItems() {
+	public List<IAdapterItem> getSelectedItems() {
 		// can be made better, just quick & dirty
-		List<Tweet> list = new ArrayList<Tweet>();
+		List<IAdapterItem> list = new ArrayList<IAdapterItem>();
 		for (long itemid : mSelectedItemIds) {
 			IAdapterItem adapterItem = mIdItemMap.get(itemid);
 			if (!list.contains(adapterItem)) {
-				list.add((Tweet) adapterItem);
+				list.add(adapterItem);
 			}
 		}
 		return list;
@@ -112,13 +97,13 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 	public ItemViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
 		switch (viewType) {
 			case VIEW_TYPE_INVISIBLE:
-				View view = new View(mContext);
+				View view = new NullView(mContext);
 				view.requestLayout();
 				view.setVisibility(View.GONE);
 				return new ItemViewHolder(view);
 
 			default:
-				TweetItemView itemView = new TweetItemView(mContext);
+				View itemView = mItemPresenter.getView(mContext);
 				itemView.setVisibility(View.VISIBLE);
 				return new ItemViewHolder(itemView);
 		}
@@ -127,33 +112,34 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 	@Override
 	public void onBindViewHolder(ItemViewHolder viewHolder, final int position) {
 		if (viewHolder.isNotNullView()) {
-			TweetItemView itemView = (TweetItemView) viewHolder.itemView;
-			final Tweet tweet = mList.get(position);
-			final long itemId = tweet.getItemId();
-			mIdItemMap.put(itemId, tweet);
+			View itemView = viewHolder.itemView;
+			final T item = mList.get(position);
+			final long itemId = item.getItemId();
+			mIdItemMap.put(itemId, item);
 
-			itemView.update(tweet);
-			itemView.setSelected(tweet.isSelected());
+			mItemPresenter.present(itemView, item);
+
+			itemView.setSelected(mSelectedItemIds.contains(itemId));
 
 			itemView.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					mState.handleClick(new Subject(tweet, position, itemId));
+					mState.handleClick(new Subject(item, position, itemId));
 				}
 			});
 			itemView.setOnLongClickListener(new View.OnLongClickListener() {
 				@Override
 				public boolean onLongClick(View v) {
-					mState.handleLongClick(new Subject(tweet, position, itemId));
+					mState.handleLongClick(new Subject(item, position, itemId));
 					return false;
 				}
 			});
 		}
 		int size = mList.size();
 
-		if(position > mLastPosition) {
+		if (position > mLastPosition) {
 			// we scroll down
-			if(position > (size - 5)) {
+			if (position > (size - 5)) {
 				mListener.endReached();
 			}
 		}
@@ -174,20 +160,20 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 	//----------------------------------
 	//  Custom
 	//----------------------------------
-	public void replaceAll(List<Tweet> tweets) {
-		if (tweets == null || tweets.size() == 0)
+	public void replaceAll(List<T> items) {
+		if (items == null || items.size() == 0)
 			return;
 
 		synchronized (this) {
 			mList.clear();
-			mList.addAll(tweets);
+			mList.addAll(items);
 			notifyDataSetChanged();
 		}
 	}
 
-	public void makeInvisible(List<Tweet> items) {
-		for (Tweet tweet : items) {
-			mInvisibleItems.add(tweet.hashCode());
+	public void makeInvisible(List<T> items) {
+		for (T item : items) {
+			mInvisibleItems.add(item.getItemId());
 		}
 		notifyDataSetChanged();
 	}
@@ -205,11 +191,19 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 	//----------------------------------
 	public static class ItemViewHolder extends RecyclerView.ViewHolder {
 		public boolean isNotNullView() {
-			return (itemView instanceof TweetItemView);
+			return !(itemView instanceof NullView);
 		}
-
 		public ItemViewHolder(View itemView) {
 			super(itemView);
+		}
+	}
+
+	//----------------------------------
+	//  NullViewHelper
+	//----------------------------------
+	public static class NullView extends View {
+		public NullView(Context context) {
+			super(context);
 		}
 	}
 
@@ -236,10 +230,6 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 		@Override
 		void execute() {
 			mSelectedItemIds.clear();
-			// can be made better, e.g. via sparse array & ids
-			for(IAdapterItem item : mList) {
-				item.setSelected(false);
-			}
 			notifyDataSetChanged();
 		}
 
@@ -271,7 +261,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 		void execute() {
 			Log.i("XXX", "StateTransitionToSelection::execute");
 			mSelectionAllowed = mListener.isSelectionAllowed(mSubject.id);
-			if(mSelectionAllowed) {
+			if (mSelectionAllowed) {
 				mListener.multiSelectionBegun();
 				toggleSelection(mSubject);
 				// click does not come, bc of notifyitemchanged in toggleSelection, so change state here
@@ -282,7 +272,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 		@Override
 		protected void handleClick(Subject subject) {
 			Log.i("XXX", "StateTransitionToSelection::handleClick");
-			if(!mSelectionAllowed) {
+			if (!mSelectionAllowed) {
 				// wait for click event and change state here
 				setState(new StateTransitionToNormal());
 			}
@@ -318,18 +308,15 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ItemViewHolder
 	}
 
 
-
 	private void toggleSelection(Subject subject) {
 		synchronized (mLock) {
 			if (!mSelectedItemIds.contains(subject.id)) {
 				boolean selectionAllowed = mListener.isSelectionAllowed(subject.id);
-				if(selectionAllowed) {
+				if (selectionAllowed) {
 					mSelectedItemIds.add(subject.id);
-					subject.adapterItem.setSelected(true);
 				}
 			} else {
 				mSelectedItemIds.remove(subject.id);
-				subject.adapterItem.setSelected(false);
 			}
 			mListener.multiSelectionUpdate(mSelectedItemIds.size());
 			notifyItemChanged(subject.position);
