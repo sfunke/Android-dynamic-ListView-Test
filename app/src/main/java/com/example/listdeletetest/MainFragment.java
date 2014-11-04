@@ -5,6 +5,8 @@ import android.app.Fragment;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
@@ -15,6 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.listdeletetest.adapter.IAdapterItem;
@@ -26,6 +29,9 @@ import com.example.listdeletetest.webservice.WebService;
 import com.jensdriller.libs.undobar.UndoBar;
 
 import java.util.List;
+
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 
 public class MainFragment extends Fragment {
@@ -41,6 +47,7 @@ public class MainFragment extends Fragment {
 
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
+		ButterKnife.inject(this, view);
 		mListView = (RecyclerView) view.findViewById(R.id.listView);
 		mSwipeLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_container);
 		mSwipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -180,6 +187,21 @@ public class MainFragment extends Fragment {
 
 		// start
 		mListController.fetchInitial();
+	}
+
+	@OnClick({R.id.buttonLinear, R.id.buttonStaggered, R.id.buttonGrid})
+	public void buttonClick(Button button) {
+		switch (button.getId()) {
+			case R.id.buttonLinear:
+				mListView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+				break;
+			case R.id.buttonStaggered:
+				mListView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+				break;
+			case R.id.buttonGrid:
+				mListView.setLayoutManager(new GridLayoutManager(getActivity(), 1));
+				break;
+		}
 	}
 
 

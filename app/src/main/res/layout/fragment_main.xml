@@ -22,4 +22,35 @@
 
 
 	</android.support.v4.widget.SwipeRefreshLayout>
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+	    android:orientation="horizontal"
+	    android:layout_gravity="bottom"
+	    android:background="#88ffffff"
+		>
+		<Button
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+		    android:layout_weight="1"
+		    android:id="@+id/buttonLinear"
+		    android:text="Linear"
+			/>
+		<Button
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+		    android:layout_weight="1"
+		    android:id="@+id/buttonStaggered"
+		    android:text="Staggered"
+			/>
+		<Button
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+		    android:layout_weight="1"
+		    android:id="@+id/buttonGrid"
+		    android:text="Grid"
+			/>
+
+		</LinearLayout>
 </FrameLayout>

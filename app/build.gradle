@@ -24,6 +24,7 @@ dependencies {
     compile 'com.android.support:support-v4:20.0.+'
     compile 'com.android.support:recyclerview-v7:21.0.0'
     compile 'com.squareup.picasso:picasso:2.3.4'
+    compile 'com.jakewharton:butterknife:4.0.1'
     compile 'com.github.jenzz.undobar:library:1.1:api15Release@aar'
 //    compile 'org.lucasr.twowayview:core:1.0.0-SNAPSHOT@aar'
 //    compile 'org.lucasr.twowayview:layouts:1.0.0-SNAPSHOT@aar'
