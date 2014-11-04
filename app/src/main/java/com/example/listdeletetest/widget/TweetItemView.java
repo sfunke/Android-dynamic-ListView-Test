@@ -21,7 +21,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.LayoutInflater;
-import android.widget.Checkable;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -31,7 +30,7 @@ import com.example.listdeletetest.model.Tweet;
 import com.squareup.picasso.Picasso;
 
 
-public class TweetItemView extends FrameLayout implements Checkable {
+public class TweetItemView extends FrameLayout {
 	private final ImageView mProfileImage;
 	private final TextView mAuthorText;
 	private final TextView mDebugText;
@@ -114,7 +113,7 @@ public class TweetItemView extends FrameLayout implements Checkable {
 
 		int ch = canvas.getHeight();
 		int cw = canvas.getWidth();
-		if (mChecked) {
+		if (isSelected()) {
 			// checked state
 			canvas.drawRect(0, 0, cw, ch - 1, mSelectionPaint);
 		}
@@ -131,18 +130,26 @@ public class TweetItemView extends FrameLayout implements Checkable {
 	}
 
 	@Override
-	public void setChecked(boolean checked) {
-		mChecked = checked;
-		invalidate();
+	public void setSelected(boolean selected) {
+		super.setSelected(selected);
+		if(isSelected()) {
+			setPressed(false);
+		}
 	}
 
-	@Override
-	public boolean isChecked() {
-		return mChecked;
-	}
+	//	@Override
+//	public void setChecked(boolean checked) {
+//		mChecked = checked;
+//		invalidate();
+//	}
 
-	@Override
-	public void toggle() {
-		setChecked(!mChecked);
-	}
+//	@Override
+//	public boolean isChecked() {
+//		return mChecked;
+//	}
+
+//	@Override
+//	public void toggle() {
+//		setChecked(!mChecked);
+//	}
 }

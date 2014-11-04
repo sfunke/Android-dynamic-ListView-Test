@@ -102,7 +102,7 @@ public class ListController implements WebService.Delegate {
 		mIsBusy = false;
 	}
 
-	public void prepareDelete(ArrayList<Tweet> selectedItems) {
+	public void prepareDelete(List<Tweet> selectedItems) {
 		mPrepareDeleteTweets.addAll(selectedItems);
 		mAdapter.makeInvisible(selectedItems);
 	}

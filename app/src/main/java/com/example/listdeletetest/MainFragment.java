@@ -7,7 +7,7 @@ import android.os.Parcelable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.SparseBooleanArray;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,15 +16,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.ListView;
+import android.widget.Toast;
 
-import com.etsy.android.grid.ExtendableListView;
 import com.example.listdeletetest.model.Tweet;
 import com.example.listdeletetest.webservice.FauxWebService;
 import com.example.listdeletetest.webservice.WebService;
 import com.jensdriller.libs.undobar.UndoBar;
 
-import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainFragment extends Fragment {
@@ -32,6 +31,7 @@ public class MainFragment extends Fragment {
 	private RecyclerView mListView;
 	private SwipeRefreshLayout mSwipeLayout;
 	private boolean mUserHasInitiallyScrolled;
+	private ActionMode mActionMode;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -56,7 +56,105 @@ public class MainFragment extends Fragment {
 
 
 		WebService webService = new FauxWebService(getActivity());
-		ListAdapter adapter = ListAdapter.instantiate(getActivity());
+		final ListAdapter adapter = ListAdapter.instantiate(getActivity());
+		adapter.setListener(new ListAdapter.Listener() {
+			@Override
+			public void endReached() {
+				Log.w("XXX", "endReached called");
+				mListController.fetchBottom();
+			}
+
+			@Override
+			public void itemClicked(ListAdapter.IAdapterItem item) {
+				Toast.makeText(getActivity(), "Open Details", Toast.LENGTH_SHORT).show();
+			}
+
+			@Override
+			public boolean isSelectionAllowed(long id) {
+				if (id == 1608761649L) { // <= hardcoded value
+					Toast.makeText(getActivity(), "This is your profile image, we don't allow selection", Toast.LENGTH_SHORT).show();
+					return false;
+				}
+				return true;
+			}
+
+			@Override
+			public void multiSelectionBegun() {
+				mActionMode = getActivity().startActionMode(new ActionMode.Callback() {
+					@Override
+					public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+						MenuInflater inflater = getActivity().getMenuInflater();
+						inflater.inflate(R.menu.list_select_menu, menu);
+						mode.setTitle("Select Items");
+						return true;
+					}
+
+					@Override
+					public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+						return true;
+					}
+
+					@Override
+					public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+						switch (item.getItemId()) {
+							case R.id.action_delete:
+								List<Tweet> selectedItems = adapter.getSelectedItems();
+								mListController.prepareDelete(selectedItems);
+
+
+								new UndoBar.Builder(getActivity())
+										.setMessage("Delete " + selectedItems.size() + " items")
+										.setListener(new UndoBar.Listener() {
+											@Override
+											public void onHide() {
+												mListController.doDelete();
+											}
+
+											@Override
+											public void onUndo(Parcelable parcelable) {
+												mListController.undoPrepareDelete();
+											}
+										})
+										.show();
+
+								mode.finish();
+								break;
+						}
+						return true;
+					}
+
+					;
+
+					@Override
+					public void onDestroyActionMode(ActionMode mode) {
+						adapter.clearSelectionState();
+					}
+				});
+			}
+
+			@Override
+			public void multiSelectionEnd() {
+				if (mActionMode != null) {
+					mActionMode.finish();
+					mActionMode = null;
+				}
+			}
+
+			@Override
+			public void multiSelectionUpdate(int count) {
+				switch (count) {
+					case 0:
+						mActionMode.setSubtitle(null);
+						break;
+					case 1:
+						mActionMode.setSubtitle("1 item selected");
+						break;
+					default:
+						mActionMode.setSubtitle("" + count + " items selected");
+						break;
+				}
+			}
+		});
 
 		mListController = new ListController(webService, adapter);
 		mListController.setRequestStateChangeDelegate(new ListController.RequestStateChangeDelegate() {
@@ -74,8 +172,8 @@ public class MainFragment extends Fragment {
 		mListView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
 		mListView.setAdapter(adapter);
 		mListView.setLongClickable(true);
-//		mListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
-//		((ExtendableListView)mListView).setMultiChoiceModeListener(mMultiChoiceModeListener);
+		int spacing = getResources().getDimensionPixelSize(R.dimen.item_spacing);
+//		mListView.addItemDecoration(new SpacingItemDecoration(spacing, spacing));
 		mListView.setOnScrollListener(new RecyclerView.OnScrollListener() {
 			@Override
 			public void onScrollStateChanged(RecyclerView recyclerView, int scrollState) {
@@ -163,6 +261,7 @@ public class MainFragment extends Fragment {
 	}
 
 
+/*
 	private ExtendableListView.MultiChoiceModeListener mMultiChoiceModeListener = new ExtendableListView.MultiChoiceModeListener() {
 		@Override
 		public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
@@ -234,10 +333,13 @@ public class MainFragment extends Fragment {
 		public void onDestroyActionMode(ActionMode mode) {
 		}
 	};
+*/
 
 
+/*
 	public AbsListView getListView() {
 		return new ListView(getActivity());
 	}
+*/
 
 }

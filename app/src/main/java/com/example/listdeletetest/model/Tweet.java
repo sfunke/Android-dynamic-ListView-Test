@@ -16,10 +16,12 @@
 
 package com.example.listdeletetest.model;
 
+import com.example.listdeletetest.ListAdapter;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Tweet {
+public class Tweet implements ListAdapter.IAdapterItem {
     private static final String JSON_ID = "id";
     private static final String JSON_AUTHOR_NAME = "authorName";
     private static final String JSON_MESSAGE = "message";
@@ -33,6 +35,7 @@ public class Tweet {
     private final String mPostImageUrl;
 	private final long mTimeStamp;
 	private int mHashCode;
+	private boolean mIsSelected;
 
 	public Tweet(JSONObject jsonTweet, long timeStamp) throws JSONException {
         mId = jsonTweet.getString(JSON_ID);
@@ -91,4 +94,22 @@ public class Tweet {
     public String toString() {
         return "Tweet@" + mId;
     }
+
+	//----------------------------------
+	//  IAdapterItem
+	//----------------------------------
+	@Override
+	public long getItemId() {
+		return hashCode();
+	}
+
+	@Override
+	public boolean isSelected() {
+		return mIsSelected;
+	}
+
+	@Override
+	public void setSelected(boolean isSelected) {
+		mIsSelected = isSelected;
+	}
 }
